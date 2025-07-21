@@ -1,0 +1,194 @@
+# HR Attrition Analysis - R Script
+
+# Author: Julio Fonseca
+
+# Pacotes
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+# Carregar os dados
+dados <- read_excel("c:/CA_2025-05_AiDAPT01/Projeto/Dataset_Projeto_G4.xlsx")
+
+# Converter colunas categóricas
+dados <- dados %>%
+  mutate(
+    Attrition     = as.factor(Attrition),
+    MaritalStatus = as.factor(MaritalStatus),
+    OverTime      = as.factor(OverTime),
+    intervalo     = cut(Age,
+                    breaks = c(18, 25, 35, 45, 55, Inf),
+                    labels = c("18-25", "26-35", "36-45", "46-55", "56+"),
+                    right = FALSE,
+                    include.lowest = TRUE
+                    ),
+    HourlyRate  = as.factor(HourlyRate),
+    WorkLifeBalance = as.factor(WorkLifeBalance),
+    YearsSinceLastPromotion = as.factor((YearsSinceLastPromotion)),
+    YearsWithCurrManager = as.factor(YearsWithCurrManager),
+    PerformanceRating = as.factor(PerformanceRating)
+  )
+
+# Criar tabela com proporções de attrition por estado civil
+attrition_marital <- dados %>%
+  group_by(MaritalStatus, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(MaritalStatus) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico com proporções
+ggplot(attrition_marital, aes(x = MaritalStatus, y = proportion, fill = Attrition)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Attrition Rate by Marital Status",
+    x = "Marital Status",
+    y = "Proportion of Employees",
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Gráfico com proporções Distancia de casa
+ggplot(dados, aes(x = DistanceFromHome, fill = Attrition)) +
+  geom_histogram(position = "identity", alpha = 0.6, bins = 30) +
+  labs(
+    title = "Attrition by Distance from Home",
+    x = "Distance From Home (km)",
+    y = "Number of Employees",
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Preparar os dados
+attrition_overtime <- dados %>%
+  group_by(OverTime, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(OverTime) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico Overtime
+ggplot(attrition_overtime, aes(x = OverTime, y = proportion, fill = Attrition)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(
+    title = "Attrition by OverTime Status",
+    x = "OverTime",
+    y = "Proportion of Employees",
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Criar a tabela com contagem e proporção por faixa etária (intervalo) e attrition
+attrition_idade <- dados %>%
+  group_by(intervalo, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(intervalo) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico
+ggplot(attrition_idade, aes(x = intervalo, y = proportion, fill = Attrition)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Proporção de Attrition por Faixa Etária",
+    x = "Faixa Etária",
+    y = "Proporção de Funcionários",
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Criar a tabela com proporção por Hourly Income e attrition
+attrition_hourly_rate <- dados %>% # Renomeei para ser mais claro
+  group_by(HourlyRate, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(HourlyRate) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico
+ggplot(attrition_hourly_rate, aes(x = HourlyRate, y = proportion, fill = Attrition)) + # <-- Use HourlyRate aqui
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Proporção de Attrition por Hourly Rate", # <-- Título atualizado
+    x = "Hourly Rate", # <-- Rótulo do eixo X atualizado
+    y = "Proporção de Funcionários", # <-- Rótulo do eixo Y deve ser proporção
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Criar a tabela com proporção por WorkLifeBalance
+attrition_Work_Life_Balance <- dados %>% 
+  group_by(WorkLifeBalance, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(WorkLifeBalance) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico
+ggplot(attrition_Work_Life_Balance, aes(x = WorkLifeBalance, y = proportion, fill = Attrition)) + # <-- Use HourlyRate aqui
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Proporção de Attrition por Work Life Balance", # <-- Título atualizado
+    x = "Work Life Balance", # <-- Rótulo do eixo X atualizado
+    y = "Proporção de Funcionários", # <-- Rótulo do eixo Y deve ser proporção
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Criar a tabela com proporção por YearsSinceLastPromotion
+attrition_Years_Since_Last_Promotion <- dados %>% 
+  group_by(YearsSinceLastPromotion, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(YearsSinceLastPromotion) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico
+ggplot(attrition_Years_Since_Last_Promotion, aes(x = YearsSinceLastPromotion, y = proportion, fill = Attrition)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Proporção de Attrition por Hourly Rate", 
+    x = "Years Since Last Promotion", 
+    y = "Proporção de Funcionários", 
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Criar a tabela com proporção por YearsWithCurrManager
+attrition_Years_With_Curr_Manager <- dados %>% 
+  group_by(YearsWithCurrManager, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(YearsWithCurrManager) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico
+ggplot(attrition_Years_With_Curr_Manager, aes(x = YearsWithCurrManager, y = proportion, fill = Attrition)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Proporção de Attrition por Years with Current Manager", 
+    x = "Years With Current Manager", 
+    y = "Proporção de Funcionários", 
+    fill = "Attrition"
+  ) +
+  theme_minimal()
+
+# Criar a tabela com proporção por PerformanceRating
+attrition_Performance_Rating <- dados %>% 
+  group_by(PerformanceRating, Attrition) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(PerformanceRating) %>%
+  mutate(proportion = count / sum(count))
+
+# Gráfico
+ggplot(attrition_Performance_Rating, aes(x = PerformanceRating, y = proportion, fill = Attrition)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Proporção de Attrition por Performance Rating", 
+    x = "Performance Rating", 
+    y = "Proporção de Funcionários", 
+    fill = "Attrition"
+  ) +
+  theme_minimal()
